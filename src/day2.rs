@@ -27,6 +27,22 @@ pub fn solve_part1(input: &Vec<i32>) -> i32 {
     input[0]
 }
 
+#[aoc(day2, part2)]
+pub fn solve_part2(input: &Vec<i32>) -> i32 {
+    for noun in 0..100 {
+        for verb in 0..100 {
+            let mut test = input.clone();
+            test[1] = noun;
+            test[2] = verb;
+            compute(&mut test);
+            if test[0] == 19690720 {
+                return 100 * noun + verb;
+            }
+        }
+    }
+    panic!("Unable to find suitable input");
+}
+
 fn compute(input: &mut Vec<i32>) {
     let mut pc = 0;
     loop {
