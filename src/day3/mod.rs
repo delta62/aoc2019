@@ -1,9 +1,9 @@
-mod direction;
-mod parseerror;
+mod cartesian;
+mod errors;
 mod wire;
 
-use direction::Direction;
-use wire::{Point,Span,WireDirection,WirePath};
+use cartesian::{Direction,Point,Span};
+use wire::{WireDirection,WirePath};
 
 #[aoc_generator(day3)]
 pub fn input_generator(input: &str) -> Vec<WirePath> {
@@ -75,31 +75,44 @@ pub fn solve_part1(input: &[WirePath]) -> i32 {
 fn solve_part2(input: &[WirePath]) -> usize {
     let path1 = input.get(0).expect("input data not long enough");
     let path2 = input.get(1).expect("input data not long enough");
+    let mut spans = vec![];
 
-    let mut path1_points = vec![];
-    let mut path2_points = vec![];
-    let mut from = Point { x: 0, y: 0 };
+    let mut xloc = 0;
+    let mut yloc = 0;
 
+    // trace path1 & add to spans
     for d in path1 {
-        for p in d.expand_points(&from) {
-            from = p.clone();
-            path1_points.push(p);
+        let from = Point { x: xloc, y: yloc };
+        match d.direction {
+            Direction::Down  => yloc -= d.length,
+            Direction::Left  => xloc -= d.length,
+            Direction::Right => xloc += d.length,
+            Direction::Up    => yloc += d.length,
         }
+        let to = Point { x: xloc, y: yloc };
+        spans.push(Span { from , to });
     }
 
-    from = Point { x: 0, y: 0 };
-    for d in path2 {
-        for p in d.expand_points(&from) {
-            from = p.clone();
-            path2_points.push(p);
-        }
-    }
-
+    // trace path 2 & make a list of intersections
+    xloc = 0;
+    yloc = 0;
     let mut intersections = vec![];
-    for (idx1, p1) in path1_points.iter().enumerate() {
-        for (idx2, p2) in path2_points.iter().enumerate() {
-            if p1.x == p2.x && p1.y == p2.y {
-                intersections.push(idx1 + idx2);
+
+    for d in path2 {
+        let from = Point { x: xloc, y: yloc };
+        match d.direction {
+            Direction::Down  => yloc -= d.length,
+            Direction::Left  => xloc -= d.length,
+            Direction::Right => xloc += d.length,
+            Direction::Up    => yloc += d.length,
+        }
+        let to = Point { x: xloc, y: yloc };
+        let span = Span { from , to };
+        for s in spans.iter() {
+            let intersection = span.intersection(s);
+            if let Some(p) = intersection {
+                let distance = p.x.abs() + p.y.abs();
+                intersections.push(distance);
             }
         }
     }
@@ -108,7 +121,7 @@ fn solve_part2(input: &[WirePath]) -> usize {
         .into_iter()
         .filter(|x| *x != 0)
         .min()
-        .expect("No intersections found")
+        .expect("No intersections found") as usize
 }
 
 #[cfg(test)]
