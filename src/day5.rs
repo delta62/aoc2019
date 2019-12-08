@@ -1,36 +1,3 @@
-#[derive(Debug)]
-enum ParamMode {
-    Position,
-    Immediate,
-}
-
-#[derive(Debug)]
-struct Param {
-    pub mode: ParamMode,
-    pub data: i32,
-}
-
-impl Param {
-    fn new(mode: Option<&char>, data: i32) -> Param {
-        let mode = mode.unwrap_or(&'0');
-        let mode = match mode {
-            '0' => ParamMode::Position,
-            '1' => ParamMode::Immediate,
-            x   => panic!("Unsupported parameter mode {}", x),
-        };
-        Param { mode, data }
-    }
-}
-
-#[derive(Debug)]
-enum Op {
-    Add(Param, Param, Param),
-    Multiply(Param, Param, Param),
-    Input(Param),
-    Output(Param),
-    Halt,
-}
-
 #[aoc_generator(day5)]
 pub fn input_generator(input: &str) -> Vec<i32> {
     input
@@ -42,6 +9,15 @@ pub fn input_generator(input: &str) -> Vec<i32> {
 #[aoc(day5, part1)]
 pub fn solve_part1(input: &Vec<i32>) -> i32 {
     let stdin  = vec![ 1 ];
+    let stdout = vec![];
+    let mut prog = Program::new(input.clone(), stdin, stdout);
+    prog.run();
+    *prog.stdout().get(0).expect("No output value")
+}
+
+#[aoc(day5, part2)]
+pub fn solve_part2(input: &Vec<i32>) -> i32 {
+    let stdin = vec![ 5 ];
     let stdout = vec![];
     let mut prog = Program::new(input.clone(), stdin, stdout);
     prog.run();
@@ -82,7 +58,37 @@ impl Program {
                 Op::Output(x) => {
                     let x = self.read(x);
                     self.stdout.insert(0, x);
-                }
+                },
+                Op::JumpIfTrue(x, dst) => {
+                    let x = self.read(x);
+                    if x != 0 {
+                        self.pc = self.read(dst) as usize;
+                    }
+                },
+                Op::JumpIfFalse(x, dst) => {
+                    let x = self.read(x);
+                    if x == 0 {
+                        self.pc = self.read(dst) as usize;
+                    }
+                },
+                Op::LessThan(x, y, d) => {
+                    let x = self.read(x);
+                    let y = self.read(y);
+                    if x < y {
+                        self.write(d, 1);
+                    } else {
+                        self.write(d, 0);
+                    }
+                },
+                Op::Equals(x, y, d) => {
+                    let x = self.read(x);
+                    let y = self.read(y);
+                    if x == y {
+                        self.write(d, 1);
+                    } else {
+                        self.write(d, 0);
+                    }
+                },
             }
         }
     }
@@ -128,6 +134,32 @@ impl Program {
                 self.pc += 2;
                 Op::Output(x)
             },
+            "05" => {
+                let x = Param::new(flags.get(0), self.mem[self.pc + 1]);
+                let d = Param::new(flags.get(1), self.mem[self.pc + 2]);
+                self.pc += 3;
+                Op::JumpIfTrue(x, d)
+            },
+            "06" => {
+                let x = Param::new(flags.get(0), self.mem[self.pc + 1]);
+                let d = Param::new(flags.get(1), self.mem[self.pc + 2]);
+                self.pc += 3;
+                Op::JumpIfFalse(x, d)
+            },
+            "07" => {
+                let x = Param::new(flags.get(0), self.mem[self.pc + 1]);
+                let y = Param::new(flags.get(1), self.mem[self.pc + 2]);
+                let d = Param::new(flags.get(2), self.mem[self.pc + 3]);
+                self.pc += 4;
+                Op::LessThan(x, y, d)
+            },
+            "08" => {
+                let x = Param::new(flags.get(0), self.mem[self.pc + 1]);
+                let y = Param::new(flags.get(1), self.mem[self.pc + 2]);
+                let d = Param::new(flags.get(2), self.mem[self.pc + 3]);
+                self.pc += 4;
+                Op::Equals(x, y, d)
+            },
             "99" => {
                 self.pc += 1;
                 Op::Halt
@@ -139,6 +171,43 @@ impl Program {
     fn stdout(&self) -> &[i32] {
         self.stdout.as_ref()
     }
+}
+
+#[derive(Debug)]
+enum ParamMode {
+    Position,
+    Immediate,
+}
+
+#[derive(Debug)]
+struct Param {
+    pub mode: ParamMode,
+    pub data: i32,
+}
+
+impl Param {
+    fn new(mode: Option<&char>, data: i32) -> Param {
+        let mode = mode.unwrap_or(&'0');
+        let mode = match mode {
+            '0' => ParamMode::Position,
+            '1' => ParamMode::Immediate,
+            x   => panic!("Unsupported parameter mode {}", x),
+        };
+        Param { mode, data }
+    }
+}
+
+#[derive(Debug)]
+enum Op {
+    Add(Param, Param, Param),
+    Multiply(Param, Param, Param),
+    Input(Param),
+    Output(Param),
+    JumpIfTrue(Param, Param),
+    JumpIfFalse(Param, Param),
+    LessThan(Param, Param, Param),
+    Equals(Param, Param, Param),
+    Halt,
 }
 
 #[cfg(test)]
