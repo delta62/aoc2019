@@ -40,6 +40,26 @@ pub fn solve_part1(input: &(u32, u32)) -> usize {
     solutions
 }
 
+#[aoc(day4, part2)]
+pub fn solve_part2(input: &(u32, u32)) -> usize {
+    let (min, max) = input;
+    let mut solutions = 0;
+    let mut state = normalize(digits(*min));
+    let max = digits(*max);
+
+    loop {
+        if has_exclusive_double(&state) {
+            solutions += 1;
+        }
+
+        if !increment(&mut state, &max) {
+            break;
+        }
+    }
+
+    solutions
+}
+
 fn normalize(state: Vec<u32>) -> Vec<u32> {
     let mut last: u32 = 0;
     state
@@ -105,6 +125,23 @@ fn has_double(digits: &Vec<u32>) -> bool {
         .any(|pair| pair[0] == pair[1])
 }
 
+fn has_exclusive_double(digits: &Vec<u32>) -> bool {
+    let mut streak_count = 0;
+    let mut streak_digit = 0;
+    for digit in digits.iter() {
+        if *digit == streak_digit {
+            streak_count += 1;
+        } else {
+            if streak_count == 2 {
+                return true;
+            }
+            streak_count = 1;
+            streak_digit = *digit;
+        }
+    }
+    streak_count == 2
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -149,6 +186,21 @@ mod tests {
     #[test]
     fn has_double_detects_no_double() {
         assert!(!has_double(&vec![ 1, 2, 3, 4, 5 ]));
+    }
+
+    #[test]
+    fn has_exclusive_double_detects_double() {
+        assert!(has_exclusive_double(&vec![ 1, 2, 3, 3, 4 ]));
+    }
+
+    #[test]
+    fn has_exclusive_double_detects_double_and_triple() {
+        assert!(has_exclusive_double(&vec![ 1, 1, 1, 2, 2 ]));
+    }
+
+    #[test]
+    fn has_exclusive_double_fails_to_detect_triple() {
+        assert!(!has_exclusive_double(&vec![ 1, 2, 2, 2, 3 ]));
     }
 
     #[test]
