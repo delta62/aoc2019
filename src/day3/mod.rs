@@ -2,7 +2,7 @@ mod cartesian;
 mod errors;
 mod wire;
 
-use cartesian::{Direction,Point,Span};
+use cartesian::{Direction,DistanceTo,Point,Span};
 use wire::{WireDirection,WirePath};
 
 #[aoc_generator(day3)]
@@ -29,15 +29,15 @@ pub fn solve_part1(input: &[WirePath]) -> i32 {
 
     // trace path1 & add to spans
     for d in path1 {
-        let from = Point { x: xloc, y: yloc };
+        let from = Point::new(xloc, yloc);
         match d.direction {
-            Direction::Down  => yloc -= d.length,
-            Direction::Left  => xloc -= d.length,
-            Direction::Right => xloc += d.length,
-            Direction::Up    => yloc += d.length,
+            Direction::Down  => yloc -= d.length as i32,
+            Direction::Left  => xloc -= d.length as i32,
+            Direction::Right => xloc += d.length as i32,
+            Direction::Up    => yloc += d.length as i32,
         }
-        let to = Point { x: xloc, y: yloc };
-        spans.push(Span { from , to });
+        let to = Point::new(xloc, yloc);
+        spans.push(Span::new(from, to));
     }
 
     // trace path 2 & make a list of intersections
@@ -46,22 +46,23 @@ pub fn solve_part1(input: &[WirePath]) -> i32 {
     let mut intersections = vec![];
 
     for d in path2 {
-        let from = Point { x: xloc, y: yloc };
+        let from = Point::new(xloc, yloc);
         match d.direction {
-            Direction::Down  => yloc -= d.length,
-            Direction::Left  => xloc -= d.length,
-            Direction::Right => xloc += d.length,
-            Direction::Up    => yloc += d.length,
+            Direction::Down  => yloc -= d.length as i32,
+            Direction::Left  => xloc -= d.length as i32,
+            Direction::Right => xloc += d.length as i32,
+            Direction::Up    => yloc += d.length as i32,
         }
-        let to = Point { x: xloc, y: yloc };
-        let span = Span { from , to };
-        for s in spans.iter() {
+        let to = Point::new(xloc, yloc);
+        let span = Span::new(from, to);
+
+        spans.iter().for_each(|s| {
             let intersection = span.intersection(s);
             if let Some(p) = intersection {
                 let distance = p.x.abs() + p.y.abs();
                 intersections.push(distance);
             }
-        }
+        });
     }
 
     intersections
@@ -79,42 +80,51 @@ fn solve_part2(input: &[WirePath]) -> usize {
 
     let mut xloc = 0;
     let mut yloc = 0;
+    let mut distance: usize = 0;
 
     // trace path1 & add to spans
     for d in path1 {
-        let from = Point { x: xloc, y: yloc };
+        let from = Point::new(xloc, yloc);
         match d.direction {
-            Direction::Down  => yloc -= d.length,
-            Direction::Left  => xloc -= d.length,
-            Direction::Right => xloc += d.length,
-            Direction::Up    => yloc += d.length,
+            Direction::Down  => yloc -= d.length as i32,
+            Direction::Left  => xloc -= d.length as i32,
+            Direction::Right => xloc += d.length as i32,
+            Direction::Up    => yloc += d.length as i32,
         }
-        let to = Point { x: xloc, y: yloc };
-        spans.push(Span { from , to });
+        let to = Point::new(xloc, yloc);
+        spans.push(DistanceTo::new(Span::new(from, to), distance));
+        distance += d.length;
     }
 
     // trace path 2 & make a list of intersections
     xloc = 0;
     yloc = 0;
+    distance = 0;
     let mut intersections = vec![];
 
     for d in path2 {
-        let from = Point { x: xloc, y: yloc };
+        let from = Point::new(xloc, yloc);
         match d.direction {
-            Direction::Down  => yloc -= d.length,
-            Direction::Left  => xloc -= d.length,
-            Direction::Right => xloc += d.length,
-            Direction::Up    => yloc += d.length,
+            Direction::Down  => yloc -= d.length as i32,
+            Direction::Left  => xloc -= d.length as i32,
+            Direction::Right => xloc += d.length as i32,
+            Direction::Up    => yloc += d.length as i32,
         }
-        let to = Point { x: xloc, y: yloc };
-        let span = Span { from , to };
-        for s in spans.iter() {
-            let intersection = span.intersection(s);
-            if let Some(p) = intersection {
-                let distance = p.x.abs() + p.y.abs();
-                intersections.push(distance);
+        let to = Point::new(xloc, yloc);
+        let span = Span::new(from, to);
+
+        // Check every span in path 1 for an intersection
+        for distance_to in spans.iter() {
+            let wire1_dist = distance_to.distance;
+            let wire1_span = &distance_to.item;
+            let intersection = span.intersection_distance(wire1_span);
+
+            if let Some(dist) = intersection {
+                let total_dist = wire1_dist + distance + dist;
+                intersections.push(total_dist);
             }
         }
+        distance += d.length;
     }
 
     intersections
