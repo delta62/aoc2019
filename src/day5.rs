@@ -209,9 +209,3 @@ enum Op {
     Equals(Param, Param, Param),
     Halt,
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-}

@@ -1,5 +1,5 @@
 use indextree::{Arena,NodeId};
-use std::collections::HashMap;
+use std::collections::{HashMap,HashSet};
 
 #[aoc_generator(day6)]
 pub fn input_generator(input: &str) -> Galaxy {
@@ -78,6 +78,43 @@ pub fn solve_part1(input: &Galaxy) -> usize {
     total
 }
 
+#[aoc(day6, part2)]
+pub fn solve_part2(input: &Galaxy) -> usize {
+    let mut visited = HashSet::new();
+    let you = input.you;
+    let planets = &input.planets;
+
+    let mut stack = vec![ (you, 0) ];
+    let mut paths = vec![ ];
+
+    loop {
+        match stack.pop() {
+            Some((node, dist)) => {
+                // Skip nodes that have already been visited
+                if let Some(_) = visited.get(&node) {
+                    continue;
+                } else {
+                    visited.insert(node);
+                }
+
+                let n = planets.get(node).unwrap();
+                if *n.get() == Planet::SAN {
+                    paths.push(dist);
+                } else {
+                    node.children(&planets).for_each(|c| stack.push((c, dist + 1)));
+                    if let Some(n) = n.parent() {
+                        stack.push((n, dist + 1));
+                    }
+                }
+            },
+            None => break,
+        }
+    }
+
+    let min: usize = paths.into_iter().min().expect("No paths found");
+    min - 2
+}
+
 #[derive(PartialEq)]
 pub enum Planet {
     COM,
@@ -101,36 +138,4 @@ pub struct Galaxy {
     pub planets: Arena<Planet>,
     pub root:    NodeId,
     pub you:     NodeId,
-}
-
-#[aoc(day6, part2)]
-pub fn solve_part2(input: &Galaxy) -> usize {
-    let you = input.you;
-    let planets = &input.planets;
-
-    let mut stack = vec![ (you, 0) ];
-    let mut paths = vec![ ];
-
-    loop {
-        match stack.pop() {
-            Some((node, dist)) => {
-                let n = planets.get(node).unwrap();
-                if *n.get() == Planet::SAN {
-                    paths.push(dist);
-                } else {
-                    node.children(&planets).for_each(|c| stack.push((c, dist + 1)));
-                    if let Some(n) = n.parent() {
-                        stack.push((n, dist + 1));
-                    }
-
-                }
-            },
-            None => break,
-        }
-    }
-
-    println!("hello");
-
-    let min: usize = paths.into_iter().min().expect("No paths found");
-    min - 2
 }
