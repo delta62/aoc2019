@@ -46,14 +46,13 @@ pub fn solve_part1(input: &Galaxy) -> usize {
     let root = input.root;
     let arena = &input.planets;
 
-    let mut stack = vec![ root ];
+    let mut stack = vec![ (root, 0) ];
     let mut total = 0;
     loop {
         match stack.pop() {
-            Some(node) => {
-                let depth = node.ancestors(&arena).skip(1).count();
+            Some((node, depth)) => {
                 total += depth;
-                node.children(&arena).for_each(|c| stack.push(c));
+                node.children(&arena).for_each(|c| stack.push((c, depth + 1)));
             },
             None => break,
         }
