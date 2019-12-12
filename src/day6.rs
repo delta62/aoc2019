@@ -80,12 +80,12 @@ pub fn solve_part1(input: &Galaxy) -> usize {
 
 #[aoc(day6, part2)]
 pub fn solve_part2(input: &Galaxy) -> usize {
-    let mut visited = HashSet::new();
-    let you = input.you;
+    let you     = input.you;
     let planets = &input.planets;
 
-    let mut stack = vec![ (you, 0) ];
-    let mut paths = vec![ ];
+    let mut visited = HashSet::new();
+    let mut stack   = vec![ (you, 0) ];
+    let mut paths   = vec![ ];
 
     loop {
         match stack.pop() {
