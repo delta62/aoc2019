@@ -12,9 +12,6 @@ pub fn input_generator(input: &str) -> Vec<i32> {
 
 #[aoc(day7, part1)]
 pub fn solve_part1(code: &Vec<i32>) -> i32 {
-    // let mut phases = [ 0, 1, 2, 3, 4 ];
-    // let inputs = Heap::new(&mut phases);
-
     Heap::new(&mut [ 0, 1, 2, 3, 4, ])
         .map(|inputs| {
             inputs
