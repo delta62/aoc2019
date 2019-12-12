@@ -17,7 +17,6 @@ pub fn solve_part1(code: &Vec<i32>) -> i32 {
 
     inputs
         .map(|inputs| {
-            println!("Testing inputs {:?}", inputs);
             let mut amplifiers = vec![
                 Amplifier::new(), // Amp A
                 Amplifier::new(), // Amp B
@@ -49,12 +48,3 @@ impl Amplifier {
         *prog.stdout().get(0).expect("No output produced in amplifier")
     }
 }
-
-// fn amplifier(mem: &<Vec<i32>>, phase: i32, input: i32) -> i32 {
-//     let mem = mem.clone();
-//     let stdin = vec![ phase, input ];
-//     let stdout = vec![ ];
-//     let mut prog = Program::new(mem, stdin, stdout);
-//     prog.run();
-//     *prog.stdout.get(0).expect("No output produced in amplifier")
-// }
